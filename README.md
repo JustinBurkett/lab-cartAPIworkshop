@@ -1,43 +1,56 @@
-# amis4630-spring26-burkett
-AMIS 4630 Buckeye Marketplace Project
-
-# Buckeye Marketplace - Deliverable 3
-
-## Table of Contents
-1. [Business System Summary](#1-business-system-summary)
-2. [Feature Prioritization](#2-feature-prioritization)
-3. [Architecture Decisions](#3-architecture-decisions)
-4. [Documentation Folder](#4-documentation-folder)
+# 🛍️ Buckeye Marketplace
+**Course:** AMIS 4630 - Spring 2026  
+**Developer:** Justin Burkett  
 
 ---
 
-## 1. Business System Summary
-The Buckeye Marketplace is a platform designed for the Ohio State community to trade goods safely. 
-* **For the Student:** The **Product Listing** entity allows them to manage multiple active sales with clear ownership.
-* **For the Parent:** The **Profile** entity provides a transparent campus identity for secure transactions.
-* **For the Alumni:** The **Product-Category** entity enables structured browsing to find specific gear efficiently.
+## 📝 Project Description
+Buckeye Marketplace is a full-stack web application designed for the OSU community. It features a **React** frontend styled with a **Scarlet and Gray** color scheme and a **.NET API** backend that manages product data. The app allows users to browse a product catalog and view specific item details with a cohesive, university-branded UI.
 
-## 2. Feature Prioritization
-Based on our persona needs, the following features are prioritized for the initial release:
+---
 
-| Feature | Priority | Persona Goal |
-| :--- | :--- | :--- |
-| User Profile Management | Must-Have | Safety and Trust (Parent) |
-| Product Listings | Must-Have | Inventory Management (Student) |
-| Category-Based Search | Must-Have | Efficient Discovery (Alumni) |
-| Shopping Cart & Orders | Must-Have | Secure Transactions (All) | 
+## 🚀 How to Run Locally
 
-I have also assigned priority labels to each feature—categorized as Must-Have, Should-Have, or Could-Have—to ensure the development roadmap focuses first on the core security and transaction needs of our Students, Parents, and Alumni.
+### 1. Backend (.NET API)
+1. Navigate to the backend folder: `cd backend`
+2. Run the server: `dotnet run`
+   *The API is configured to run at `http://localhost:5000`.*
 
-## 3. Architecture Decisions
-We have selected a robust "Enterprise Stack" to ensure security and scalability:
-* **Frontend:** **React** for a component-based, interactive user interface.
-* **Backend:** **.NET (C#)** for secure, type-safe server logic and transactions.
-* **Database:** **Azure SQL** to maintain relational integrity between users and products.
+### 2. Frontend (React)
+1. Navigate to the frontend folder: `cd frontend`
+2. Install dependencies: `npm install`
+3. Start the app: `npm run dev`
+   *The application will be available at `http://localhost:5173`.*
 
-## 4. Documentation Folder
-Detailed design records can be found in the `/docs` folder:
-* [ERD & Persona Logic](./docs/design_decisions.md)
-* [Atomic Design Component Hierarchy](./docs/component_architecture.md)
-* [Full ADR Records](./docs/ADR.md)
-* [System Architecture Diagram](./docs/system_architecture.md)
+---
+
+## 📸 Screenshots
+
+### Product List Page
+![Product List Page](./docs/screenshots/product-list.png)
+*Displays the gallery of available items with Buckeye-themed headers and accents.*
+
+### Product Detail Page
+![Product Detail Page](./docs/screenshots/product-detail.png)
+*Displays specific product descriptions, pricing, and images.*
+
+---
+
+## 🤖 AI Usage Summary
+
+**Prompts Used:**
+* "How to move folders between repos using PowerShell while maintaining project structure."
+* "React CSS styles for Ohio State Scarlet and Gray."
+* "Markdown syntax for images in subfolders."
+* "Helped scaffold the ProductsController for a .NET API."
+* "Generated sample product data for a marketplace catalog."
+
+**What I Accepted:**
+* The terminal commands for migrating the API and Frontend folders and managing repository remotes.
+* The boilerplate code for the `ProductsController` and the mock JSON data for the initial product list.
+* The basic CSS layout for the product grid and navigation bar.
+
+**What I Changed:**
+* **Manually adjusted the formatting of the basic product list and product detail page structure provided by the AI to better fit the project's layout.**
+* Manually configured the ports to ensure the React app (5173) and .NET API (5000) connected properly.
+* Customized the scaffolded Controller logic to match my specific database model and requirements.
