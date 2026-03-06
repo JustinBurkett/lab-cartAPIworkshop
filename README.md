@@ -27,11 +27,11 @@ Buckeye Marketplace is a full-stack web application designed for the OSU communi
 ## 📸 Screenshots
 
 ### Product List Page
-![Product List Page](./docs/screenshots/product-list.png)
+![Product List Page](./docs/screenshots/product_list.png)
 *Displays the gallery of available items with Buckeye-themed headers and accents.*
 
 ### Product Detail Page
-![Product Detail Page](./docs/screenshots/product-detail.png)
+![Product Detail Page](./docs/screenshots/product_details.png)
 *Displays specific product descriptions, pricing, and images.*
 
 ---
