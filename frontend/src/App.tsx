@@ -1,12 +1,29 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import ProductListPage from './components/ProductListPage';
 import ProductDetailPage from './components/ProductDetailPage';
+import CartPage from './components/CartPage';
+import { CheckoutForm } from './components/CheckoutForm';
+import { CartProvider } from './contexts/CartContext';
+import { CartBadge } from './components/CartBadge';
 import './App.css';
+
+function CheckoutPage() {
+    const navigate = useNavigate();
+    return <CheckoutForm onOrderPlaced={() => navigate('/')} />;
+}
 
 function App() {
     return (
+        <CartProvider>
         <BrowserRouter>
             <div className="app">
+                {/* Cart icon fixed to top-right */}
+                <div style={{ position: 'fixed', top: '16px', right: '20px', zIndex: 1000 }}>
+                    <Link to="/cart" aria-label="Go to cart">
+                        <CartBadge />
+                    </Link>
+                </div>
+
                 {/* --- NEW PROFESSIONAL HEADER SECTION --- */}
                 <header style={{
                     width: '100%',
@@ -55,9 +72,12 @@ function App() {
                 <Routes>
                     <Route path="/" element={<ProductListPage />} />
                     <Route path="/product/:id" element={<ProductDetailPage />} />
+                    <Route path="/cart" element={<CartPage />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
                 </Routes>
             </div>
         </BrowserRouter>
+        </CartProvider>
     );
 }
 

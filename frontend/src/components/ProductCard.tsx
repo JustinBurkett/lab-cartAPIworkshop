@@ -50,6 +50,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <p style={{ margin: '2px 0' }}><strong>Category:</strong> {product.category}</p>
             <p style={{ margin: '2px 0' }}><strong>Seller:</strong> {product.sellerName}</p>
           </div>
+
         </div>
       </div>
     </Link>

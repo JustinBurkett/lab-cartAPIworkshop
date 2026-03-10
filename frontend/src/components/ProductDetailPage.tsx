@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Product } from '../types/Product';
+import { AddToCartButton } from './AddToCartButton';
 
 const ProductDetailPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -98,15 +99,16 @@ const ProductDetailPage = () => {
                     <p style={{ margin: '5px 0' }}><strong>Posted:</strong> {new Date(product.postedDate).toLocaleDateString()}</p>
                 </div>
 
-                <button style={{ 
-                    width: '100%', 
-                    marginTop: '30px', 
-                    padding: '15px', 
-                    fontSize: '1.2rem',
-                    backgroundColor: '#bb0000' 
-                }}>
-                    Buy 
-                </button>
+                <div style={{ marginTop: '30px' }}>
+                    <AddToCartButton
+                        product={{
+                            id: product.id,
+                            name: product.title,
+                            price: product.price,
+                            imageUrl: product.imageUrl,
+                        }}
+                    />
+                </div>
             </div>
         </div>
     </div>
