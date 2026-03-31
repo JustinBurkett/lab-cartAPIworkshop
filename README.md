@@ -8,7 +8,7 @@
 
 ## Current Milestone Status
 
-- Milestone 4 (Shopping Cart): In progress
+- Milestone 4 (Shopping Cart): Submitted
 - Product catalog: Complete
 - Product detail view: Complete
 - Authentication: Not started (planned for Milestone 5)
