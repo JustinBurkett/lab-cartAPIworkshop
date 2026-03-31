@@ -63,7 +63,7 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ onOrderPlaced }: CheckoutFormProps) {
-  const { cartItemCount, cartTotal, dispatch } = useCartContext();
+  const { cartItemCount, cartTotal, clearCart } = useCartContext();
 
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
@@ -103,8 +103,9 @@ export function CheckoutForm({ onOrderPlaced }: CheckoutFormProps) {
 
     setIsProcessing(true);
     setTimeout(() => {
-      dispatch({ type: 'CLEAR_CART' });
-      onOrderPlaced();
+      void clearCart().then(() => {
+        onOrderPlaced();
+      });
     }, 1500);
   }
 

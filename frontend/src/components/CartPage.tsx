@@ -2,12 +2,23 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCartContext } from '../contexts/CartContext';
 import { CheckoutForm } from './CheckoutForm';
+import { CartItemRow } from './CartItemRow';
+import { CartSummary } from './CartSummary';
 import styles from './CartPage.module.css';
 
 const CartPage = () => {
-  const { state, dispatch, cartTotal } = useCartContext();
-  const { items } = state;
+  const { state, cartTotal, updateQuantity, removeFromCart } = useCartContext();
+  const { items, isLoading, error } = state;
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  if (isLoading) {
+    return (
+      <div className={styles.page}>
+        <h2 className={styles.heading}>Loading your cart...</h2>
+      </div>
+    );
+  }
 
   if (orderPlaced) {
     return (
@@ -47,81 +58,39 @@ const CartPage = () => {
       <Link to="/" className={styles.backLink} aria-label="Back to products">
         ← Back to Products
       </Link>
+      {statusMessage && (
+        <p role="status" className={styles.statusMessage}>
+          {statusMessage}
+        </p>
+      )}
+      {error && (
+        <p role="alert" className={styles.emptyText}>
+          {error}
+        </p>
+      )}
       <ul className={styles.itemList}>
-        {items.map((item) => {
-          const lineTotal = item.price * item.quantity;
-
-          function handleDecrement() {
-            const next = Math.max(1, item.quantity - 1);
-            dispatch({ type: 'UPDATE_QUANTITY', payload: { productId: item.productId, quantity: next } });
-          }
-
-          function handleIncrement() {
-            const next = Math.min(99, item.quantity + 1);
-            dispatch({ type: 'UPDATE_QUANTITY', payload: { productId: item.productId, quantity: next } });
-          }
-
-          function handleRemove() {
-            dispatch({ type: 'REMOVE_FROM_CART', payload: { productId: item.productId } });
-          }
-
-          return (
-            <li key={item.productId} className={styles.item}>
-              {item.imageUrl ? (
-                <img src={item.imageUrl} alt={item.productName} className={styles.image} />
-              ) : (
-                <div className={styles.imagePlaceholder} aria-hidden="true" />
-              )}
-
-              <div className={styles.info}>
-                <p className={styles.name}>{item.productName}</p>
-                <p className={styles.price}>${item.price.toFixed(2)} each</p>
-              </div>
-
-              <div className={styles.quantityControl}>
-                <button
-                  type="button"
-                  className={styles.qtyButton}
-                  onClick={handleDecrement}
-                  disabled={item.quantity === 1}
-                  aria-label={`Decrease quantity of ${item.productName}`}
-                >
-                  −
-                </button>
-                <span className={styles.quantity} aria-label={`Quantity: ${item.quantity}`}>
-                  {item.quantity}
-                </span>
-                <button
-                  type="button"
-                  className={styles.qtyButton}
-                  onClick={handleIncrement}
-                  disabled={item.quantity === 99}
-                  aria-label={`Increase quantity of ${item.productName}`}
-                >
-                  +
-                </button>
-              </div>
-
-              <span className={styles.lineTotal}>${lineTotal.toFixed(2)}</span>
-
-              <button
-                type="button"
-                className={styles.removeButton}
-                onClick={handleRemove}
-                aria-label={`Remove ${item.productName} from cart`}
-              >
-                Remove
-              </button>
-            </li>
-          );
-        })}
+        {items.map((item) => (
+          <CartItemRow
+            key={item.cartItemId}
+            item={item}
+            onDecrement={async (currentItem) => {
+              const next = Math.max(1, currentItem.quantity - 1);
+              await updateQuantity(currentItem, next);
+            }}
+            onIncrement={async (currentItem) => {
+              const next = Math.min(99, currentItem.quantity + 1);
+              await updateQuantity(currentItem, next);
+            }}
+            onRemove={async (currentItem) => {
+              await removeFromCart(currentItem);
+              setStatusMessage(`${currentItem.productName} removed from cart.`);
+              setTimeout(() => setStatusMessage(null), 1500);
+            }}
+          />
+        ))}
       </ul>
 
-      <div className={styles.footer}>
-        <p className={styles.total}>
-          Total: <span className={styles.totalAmount}>${cartTotal.toFixed(2)}</span>
-        </p>
-      </div>
+      <CartSummary total={cartTotal} />
 
       {state.items.length > 0 && <CheckoutForm onOrderPlaced={() => setOrderPlaced(true)} />}
     </div>

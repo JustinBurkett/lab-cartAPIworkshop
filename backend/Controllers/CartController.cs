@@ -44,6 +44,11 @@ public class CartController : ControllerBase
             return NotFound();
         }
 
+        if (product.StockQuantity < 1)
+        {
+            return BadRequest("This product is currently out of stock.");
+        }
+
         var cart = await _dbContext.Carts
             .Include(c => c.Items)
             .FirstOrDefaultAsync(c => c.UserId == CurrentUserId);
@@ -65,11 +70,22 @@ public class CartController : ControllerBase
         CartItem cartItem;
         if (existingItem is not null)
         {
+            var nextQuantity = existingItem.Quantity + request.Quantity;
+            if (nextQuantity > product.StockQuantity)
+            {
+                return BadRequest("Requested quantity exceeds available stock.");
+            }
+
             existingItem.Quantity += request.Quantity;
             cartItem = existingItem;
         }
         else
         {
+            if (request.Quantity > product.StockQuantity)
+            {
+                return BadRequest("Requested quantity exceeds available stock.");
+            }
+
             cartItem = new CartItem
             {
                 ProductId = request.ProductId,
@@ -87,13 +103,13 @@ public class CartController : ControllerBase
         return CreatedAtAction(nameof(GetCart), response);
     }
 
-    [HttpPut]
-    public async Task<ActionResult<CartItemResponse>> UpdateCartItem([FromBody] UpdateCartItemRequest request)
+    [HttpPut("{cartItemId:int}")]
+    public async Task<ActionResult<CartItemResponse>> UpdateCartItem([FromRoute] int cartItemId, [FromBody] UpdateCartItemRequest request)
     {
         var cartItem = await _dbContext.CartItems
             .Include(ci => ci.Cart)
             .Include(ci => ci.Product)
-            .FirstOrDefaultAsync(ci => ci.Id == request.CartItemId);
+            .FirstOrDefaultAsync(ci => ci.Id == cartItemId);
 
         if (cartItem is null)
         {
@@ -103,6 +119,11 @@ public class CartController : ControllerBase
         if (cartItem.Cart.UserId != CurrentUserId)
         {
             return Forbid();
+        }
+
+        if (cartItem.Product.StockQuantity < request.Quantity)
+        {
+            return BadRequest("Requested quantity exceeds available stock.");
         }
 
         cartItem.Quantity = request.Quantity;

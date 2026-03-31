@@ -5,3 +5,34 @@ Accept: application/json
 
 ### Get Hello Message
 GET {{BuckeyeMarketplace_HostAddress}}/api/hello
+
+### Get Product Catalog
+GET {{BuckeyeMarketplace_HostAddress}}/api/products
+Accept: application/json
+
+### Get Cart
+GET {{BuckeyeMarketplace_HostAddress}}/api/cart
+Accept: application/json
+
+### Add Item To Cart
+POST {{BuckeyeMarketplace_HostAddress}}/api/cart
+Content-Type: application/json
+
+{
+	"productId": 1,
+	"quantity": 1
+}
+
+### Update Cart Item Quantity
+PUT {{BuckeyeMarketplace_HostAddress}}/api/cart/1
+Content-Type: application/json
+
+{
+	"quantity": 2
+}
+
+### Remove Cart Item
+DELETE {{BuckeyeMarketplace_HostAddress}}/api/cart/1
+
+### Clear Cart
+DELETE {{BuckeyeMarketplace_HostAddress}}/api/cart/clear

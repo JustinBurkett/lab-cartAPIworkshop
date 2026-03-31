@@ -1,4 +1,5 @@
 export interface CartItem {
+  cartItemId: number;
   productId: number;
   productName: string;
   price: number;
@@ -9,11 +10,12 @@ export interface CartItem {
 export interface CartState {
   items: CartItem[];
   isOpen: boolean;
+  isLoading: boolean;
+  error: string | null;
 }
 
 export type CartAction =
-  | { type: 'ADD_TO_CART'; payload: { id: number; name: string; price: number; imageUrl?: string } }
-  | { type: 'REMOVE_FROM_CART'; payload: { productId: number } }
-  | { type: 'UPDATE_QUANTITY'; payload: { productId: number; quantity: number } }
-  | { type: 'CLEAR_CART' }
+  | { type: 'SET_CART_ITEMS'; payload: CartItem[] }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'TOGGLE_CART' };

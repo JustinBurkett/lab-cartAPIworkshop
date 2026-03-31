@@ -7,4 +7,5 @@ export interface Product {
     sellerName: string;
     postedDate: string;
     imageUrl: string;
+    stockQuantity: number;
 }

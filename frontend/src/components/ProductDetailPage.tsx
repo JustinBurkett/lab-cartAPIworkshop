@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Product } from '../types/Product';
 import { AddToCartButton } from './AddToCartButton';
+import { API_ENDPOINTS } from '../constants/api';
 
 const ProductDetailPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -13,7 +14,7 @@ const ProductDetailPage = () => {
     useEffect(() => {
         if (!id) return;
 
-        fetch(`http://localhost:5000/api/products/${id}`) //CHANGE THIS TO ASYNC AND AWAIT
+        fetch(`${API_ENDPOINTS.products}/${id}`)
             .then(res => {
                 if (!res.ok) throw new Error('Product not found');
                 return res.json();
@@ -32,6 +33,8 @@ const ProductDetailPage = () => {
     if (loading) return <h2>Loading product...</h2>;
     if (error) return <h2>Error: {error}</h2>;
     if (!product) return <h2>Product not found</h2>;
+
+    const isOutOfStock = product.stockQuantity < 1;
 
     return (
     <div style={{ 
@@ -97,6 +100,9 @@ const ProductDetailPage = () => {
                     <p style={{ margin: '5px 0' }}><strong>Category:</strong> {product.category}</p>
                     <p style={{ margin: '5px 0' }}><strong>Seller:</strong> {product.sellerName}</p>
                     <p style={{ margin: '5px 0' }}><strong>Posted:</strong> {new Date(product.postedDate).toLocaleDateString()}</p>
+                                        <p style={{ margin: '5px 0', color: isOutOfStock ? '#b00020' : '#2e7d32' }}>
+                                            <strong>Availability:</strong> {isOutOfStock ? 'Out of stock' : `In stock (${product.stockQuantity})`}
+                                        </p>
                 </div>
 
                 <div style={{ marginTop: '30px' }}>
@@ -107,6 +113,7 @@ const ProductDetailPage = () => {
                             price: product.price,
                             imageUrl: product.imageUrl,
                         }}
+                        disabled={isOutOfStock}
                     />
                 </div>
             </div>

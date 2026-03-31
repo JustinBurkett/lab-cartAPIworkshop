@@ -27,6 +27,15 @@
   margin-bottom: 24px;
 }
 
+.statusMessage {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
 .empty {
   text-align: center;
   padding: 60px 0;

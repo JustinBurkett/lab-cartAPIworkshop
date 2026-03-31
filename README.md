@@ -1,43 +1,64 @@
-# amis4630-spring26-burkett
-AMIS 4630 Buckeye Marketplace Project
+# Buckeye Marketplace (AMIS 4630)
 
-# Buckeye Marketplace - Deliverable 3
+Buckeye Marketplace is a full-stack e-commerce application for AMIS 4630.
 
-## Table of Contents
-1. [Business System Summary](#1-business-system-summary)
-2. [Feature Prioritization](#2-feature-prioritization)
-3. [Architecture Decisions](#3-architecture-decisions)
-4. [Documentation Folder](#4-documentation-folder)
+## Tech Stack
 
----
+- Frontend: React + TypeScript + Vite
+- Backend: ASP.NET Core Web API + Entity Framework Core
+- Database: SQLite (development)
 
-## 1. Business System Summary
-The Buckeye Marketplace is a platform designed for the Ohio State community to trade goods safely. 
-* **For the Student:** The **Product Listing** entity allows them to manage multiple active sales with clear ownership.
-* **For the Parent:** The **Profile** entity provides a transparent campus identity for secure transactions.
-* **For the Alumni:** The **Product-Category** entity enables structured browsing to find specific gear efficiently.
+## Current Milestone Status
 
-## 2. Feature Prioritization
-Based on our persona needs, the following features are prioritized for the initial release:
+- Milestone 4 (Shopping Cart): In progress
+- Product catalog: Complete
+- Product detail view: Complete
+- Authentication: Not started (planned for Milestone 5)
 
-| Feature | Priority | Persona Goal |
-| :--- | :--- | :--- |
-| User Profile Management | Must-Have | Safety and Trust (Parent) |
-| Product Listings | Must-Have | Inventory Management (Student) |
-| Category-Based Search | Must-Have | Efficient Discovery (Alumni) |
-| Shopping Cart & Orders | Must-Have | Secure Transactions (All) | 
+## Recently Added
 
-I have also assigned priority labels to each feature—categorized as Must-Have, Should-Have, or Could-Have—to ensure the development roadmap focuses first on the core security and transaction needs of our Students, Parents, and Alumni.
+### Backend
 
-## 3. Architecture Decisions
-We have selected a robust "Enterprise Stack" to ensure security and scalability:
-* **Frontend:** **React** for a component-based, interactive user interface.
-* **Backend:** **.NET (C#)** for secure, type-safe server logic and transactions.
-* **Database:** **Azure SQL** to maintain relational integrity between users and products.
+- Added persistent cart endpoints in `CartController`:
+	- `GET /api/cart`
+	- `POST /api/cart`
+	- `PUT /api/cart/{cartItemId}`
+	- `DELETE /api/cart/{id}`
+	- `DELETE /api/cart/clear`
+- Added cart persistence models and DTO mapping for API responses.
+- Added validation pipeline with FluentValidation for cart requests.
+- Added product stock support (`StockQuantity`) via migration.
+- Added stock-aware business rules:
+	- Prevent adding out-of-stock products
+	- Prevent quantity updates beyond available stock
+- Added startup database migration + seed logic in `Program.cs` for development data.
 
-## 4. Documentation Folder
-Detailed design records can be found in the `/docs` folder:
-* [ERD & Persona Logic](./docs/design_decisions.md)
-* [Atomic Design Component Hierarchy](./docs/component_architecture.md)
-* [Full ADR Records](./docs/ADR.md)
-* [System Architecture Diagram](./docs/system_architecture.md)
+### Frontend
+
+- Added cart API service layer in `src/services/cartApi.ts`.
+- Added cart state management with `useReducer` + Context in `src/contexts/CartContext.tsx`.
+- Added optimistic cart interactions for add, update quantity, remove, and clear actions.
+- Added loading/error handling for cart fetch and mutation flows.
+- Added cart UI components for cart page, badge, item row, summary, and checkout form.
+
+
+## AI Usage Documentation
+
+AI assistance has been used for code scaffolding, implementation acceleration, and documentation support.
+
+- Detailed log: `docs/ai-usage-log.md`
+- Project AI conventions: `AGENTS.md`
+
+### What AI Was Used For
+
+- Scaffolding cart reducer/context/component structure
+- Generating API wiring between frontend cart state and backend endpoints
+- Drafting validator and DTO boilerplate for cart flows
+- Assisting with stock validation and edge-case handling
+
+### What Was Verified/Adjusted Manually
+
+- Business logic and edge-case handling (quantity rules, out-of-stock behavior)
+- Accessibility requirements (button types, aria-label coverage)
+- Type safety and strict TypeScript compatibility
+- API behavior and response mapping consistency

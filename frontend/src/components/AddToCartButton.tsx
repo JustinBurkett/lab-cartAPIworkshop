@@ -9,25 +9,43 @@ interface AddToCartButtonProps {
     price: number;
     imageUrl?: string;
   };
+  disabled?: boolean;
 }
 
-export function AddToCartButton({ product }: AddToCartButtonProps) {
-  const { dispatch } = useCartContext();
+export function AddToCartButton({ product, disabled = false }: AddToCartButtonProps) {
+  const { addToCart } = useCartContext();
   const [added, setAdded] = useState(false);
+  const [failed, setFailed] = useState(false);
 
-  function handleClick() {
-    dispatch({ type: 'ADD_TO_CART', payload: product });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
+  async function handleClick() {
+    if (disabled) {
+      return;
+    }
+
+    try {
+      await addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        imageUrl: product.imageUrl,
+      });
+      setFailed(false);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1500);
+    } catch {
+      setFailed(true);
+      setAdded(false);
+    }
   }
 
   return (
     <button
       className={styles.button}
       onClick={handleClick}
+      disabled={disabled}
       aria-label={`Add ${product.name} to cart`}
     >
-      {added ? 'Added!' : 'Add to Cart'}
+      {disabled ? 'Out of Stock' : added ? 'Added!' : failed ? 'Try Again' : 'Add to Cart'}
     </button>
   );
 }

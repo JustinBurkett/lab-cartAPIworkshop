@@ -1,4 +1,27 @@
 # AI Usage Log — M4: Shopping Cart
+
+## Session: March 31, 2026
+
+### Cart API Persistence + Stock Rules
+* **Generated with AI support:** Endpoint and flow updates for persistent cart behavior in backend API (`GET/POST/PUT/DELETE` cart operations).
+* **What AI was used for:** Drafting controller logic patterns, DTO response mapping, and stock-check guard clauses.
+* **Manual verification/modifications:** Confirmed out-of-stock and over-requested quantity paths return correct error behavior. Verified update/delete actions enforce user/cart ownership assumptions.
+
+### Database + Startup Updates
+* **Generated with AI support:** Migration and startup seeding alignment for product stock quantities.
+* **What AI was used for:** Generating migration-aware startup initialization approach and seed data structure.
+* **Manual verification/modifications:** Confirmed migration application on startup and validated seeded products include realistic stock counts.
+
+### Frontend Cart API Integration
+* **Generated with AI support:** Cart service wiring and optimistic UI update patterns in context provider.
+* **What AI was used for:** Drafting async error handling, refresh flow, and typed request/response mapping.
+* **Manual verification/modifications:** Reviewed optimistic update rollback behavior and validated strict TypeScript compatibility.
+
+### Project Documentation
+* **Generated with AI support:** README updates summarizing recent additions and AI usage.
+* **What AI was used for:** Structuring milestone status, feature summary, run instructions, and AI usage documentation sections.
+* **Manual verification/modifications:** Ensured documentation reflects current repository state and milestone scope.
+
 ## Session: Week 8 Lab (March 6, 2026)
 
 ### AGENTS.md Setup
