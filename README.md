@@ -1,8 +1,6 @@
-# Buckeye Marketplace (AMIS 4630)
-
-Buckeye Marketplace is a full-stack e-commerce application for AMIS 4630.
-
-## Tech Stack
+# 🛍️ Buckeye Marketplace
+**Course:** AMIS 4630 - Spring 2026  
+**Developer:** Justin Burkett  
 
 - Frontend: React + TypeScript + Vite
 - Backend: ASP.NET Core Web API + Entity Framework Core
