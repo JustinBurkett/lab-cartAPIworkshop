@@ -124,6 +124,25 @@ public class OrdersController : ControllerBase
         return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, MapOrderResponse(order));
     }
 
+    [HttpPut("{orderId:int}/status")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<OrderResponse>> UpdateOrderStatus([FromRoute] int orderId, [FromBody] UpdateOrderStatusRequest request)
+    {
+        var order = await _dbContext.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
+
+        if (order is null)
+        {
+            return NotFound();
+        }
+
+        order.Status = request.Status;
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(MapOrderResponse(order));
+    }
+
     private string? GetCurrentUserId()
     {
         return User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);

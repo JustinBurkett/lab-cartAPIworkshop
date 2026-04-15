@@ -7,6 +7,8 @@ import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import OrderConfirmationPage from './components/OrderConfirmationPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminRoute } from './components/AdminRoute';
+import AdminDashboardPage from './components/AdminDashboardPage';
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider, useAuthContext } from './contexts/AuthContext';
 import { CartBadge } from './components/CartBadge';
@@ -31,6 +33,11 @@ function AppHeader() {
                                 {session?.user.email}
                                 {isAdmin ? ' (Admin)' : ''}
                             </span>
+                            {isAdmin && (
+                                <Link to="/admin" className="authLink" aria-label="Go to admin dashboard">
+                                    Admin
+                                </Link>
+                            )}
                             <button className="logoutButton" onClick={logout} aria-label="Logout">
                                 Logout
                             </button>
@@ -107,6 +114,14 @@ function AppLayout() {
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route
+                    path="/admin"
+                    element={(
+                        <AdminRoute>
+                            <AdminDashboardPage />
+                        </AdminRoute>
+                    )}
+                />
                 <Route
                     path="/orders/confirmation"
                     element={(

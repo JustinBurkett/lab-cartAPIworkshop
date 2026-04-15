@@ -1,0 +1,123 @@
+.page {
+  width: min(1180px, 95vw);
+  margin: 0 auto;
+  padding: 0 0 60px;
+}
+
+.heading {
+  margin: 0 0 12px;
+  color: #1f2937;
+  font-size: 2rem;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panelTitle {
+  margin: 0 0 0.8rem;
+  color: #bb0000;
+  font-size: 1.2rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+}
+
+.textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.actions {
+  margin-top: 0.7rem;
+  display: flex;
+  gap: 0.55rem;
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton {
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primaryButton {
+  background: #bb0000;
+  color: #fff;
+}
+
+.secondaryButton {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.dangerButton {
+  background: #b00020;
+  color: #fff;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 0.55rem;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+
+.productActions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.inlineRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.error {
+  color: #b00020;
+  font-weight: 700;
+}
+
+.success {
+  color: #166534;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}

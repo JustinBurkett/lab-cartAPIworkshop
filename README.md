@@ -43,6 +43,15 @@
 	- `GET /api/orders/mine` returns current user's order history (derived from JWT claims, not URL user id)
 	- Order confirmation number is generated per order
 	- Cart is cleared after successful order placement
+- Added basic admin features:
+	- Admin dashboard route in frontend (`/admin`) restricted to `Admin` role users
+	- Product management endpoints for admin UI:
+		- `GET /api/admin/products`
+		- `POST /api/admin/products`
+		- `PUT /api/admin/products/{id}`
+		- `DELETE /api/admin/products/{id}`
+	- View all orders endpoint for admins: `GET /api/admin/orders`
+	- Admin order status update endpoint: `PUT /api/orders/{orderId}/status`
 
 - Added persistent cart endpoints in `CartController`:
 	- `GET /api/cart`

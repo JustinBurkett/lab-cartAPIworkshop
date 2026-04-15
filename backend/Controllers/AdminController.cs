@@ -51,6 +51,74 @@ public class AdminController : ControllerBase
         return Ok(responses);
     }
 
+    [HttpGet("products")]
+    public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
+    {
+        var products = await _dbContext.Products
+            .OrderBy(product => product.Title)
+            .ToListAsync();
+
+        return Ok(products);
+    }
+
+    [HttpPost("products")]
+    public async Task<ActionResult<Product>> CreateProduct([FromBody] UpsertProductRequest request)
+    {
+        var product = new Product
+        {
+            Title = request.Title.Trim(),
+            Description = request.Description.Trim(),
+            Price = request.Price,
+            StockQuantity = request.StockQuantity,
+            Category = request.Category.Trim(),
+            SellerName = request.SellerName.Trim(),
+            ImageUrl = request.ImageUrl.Trim(),
+            PostedDate = DateTime.UtcNow
+        };
+
+        _dbContext.Products.Add(product);
+        await _dbContext.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetAllProducts), new { id = product.Id }, product);
+    }
+
+    [HttpPut("products/{id:int}")]
+    public async Task<ActionResult<Product>> UpdateProduct([FromRoute] int id, [FromBody] UpsertProductRequest request)
+    {
+        var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.Id == id);
+        if (product is null)
+        {
+            return NotFound();
+        }
+
+        product.Title = request.Title.Trim();
+        product.Description = request.Description.Trim();
+        product.Price = request.Price;
+        product.StockQuantity = request.StockQuantity;
+        product.Category = request.Category.Trim();
+        product.SellerName = request.SellerName.Trim();
+        product.ImageUrl = request.ImageUrl.Trim();
+
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(product);
+    }
+
+    [HttpDelete("products/{id:int}")]
+    public async Task<IActionResult> DeleteProduct([FromRoute] int id)
+    {
+        var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.Id == id);
+        if (product is null)
+        {
+            return NotFound();
+        }
+
+        _dbContext.Products.Remove(product);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     [HttpGet("users")]
     public async Task<ActionResult<IEnumerable<object>>> GetUsers()
     {
