@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCartContext } from '../contexts/CartContext';
+import { useAuthContext } from '../contexts/AuthContext';
 import styles from './AddToCartButton.module.css';
 
 interface AddToCartButtonProps {
@@ -13,12 +15,19 @@ interface AddToCartButtonProps {
 }
 
 export function AddToCartButton({ product, disabled = false }: AddToCartButtonProps) {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthContext();
   const { addToCart } = useCartContext();
   const [added, setAdded] = useState(false);
   const [failed, setFailed] = useState(false);
 
   async function handleClick() {
     if (disabled) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      navigate('/login');
       return;
     }
 

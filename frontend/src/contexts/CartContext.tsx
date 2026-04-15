@@ -2,6 +2,7 @@ import { createContext, useContext, useReducer, useMemo, useEffect, useCallback 
 import type { ReactNode } from 'react';
 import { cartReducer, initialCartState } from '../reducers/cartReducer';
 import type { CartItem, CartState } from '../types/cart';
+import { useAuthContext } from './AuthContext';
 import {
   addItemToCart,
   clearCartItems,
@@ -36,8 +37,16 @@ interface CartProviderProps {
 
 export function CartProvider({ children }: CartProviderProps) {
   const [state, dispatch] = useReducer(cartReducer, initialCartState);
+  const { isAuthenticated } = useAuthContext();
 
   const refreshCart = useCallback(async (showLoading = false) => {
+    if (!isAuthenticated) {
+      dispatch({ type: 'SET_CART_ITEMS', payload: [] });
+      dispatch({ type: 'SET_ERROR', payload: null });
+      dispatch({ type: 'SET_LOADING', payload: false });
+      return;
+    }
+
     if (showLoading) {
       dispatch({ type: 'SET_LOADING', payload: true });
     }
@@ -53,7 +62,7 @@ export function CartProvider({ children }: CartProviderProps) {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     void refreshCart(true);

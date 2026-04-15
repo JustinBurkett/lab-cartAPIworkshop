@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import type { Product } from '../types/Product';
 import { AddToCartButton } from './AddToCartButton';
 import { API_ENDPOINTS } from '../constants/api';
+import { apiFetch } from '../services/httpClient';
 
 const ProductDetailPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -12,20 +13,18 @@ const ProductDetailPage = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!id) return;
+        if (!id) {
+            return;
+        }
 
-        fetch(`${API_ENDPOINTS.products}/${id}`)
-            .then(res => {
-                if (!res.ok) throw new Error('Product not found');
-                return res.json();
-            })
-            .then(data => {
+        apiFetch<Product>(`${API_ENDPOINTS.products}/${id}`)
+            .then((data) => {
                 setProduct(data);
                 setLoading(false);
             })
-            .catch(err => {
-                console.error("Error fetching product:", err);
-                setError(err.message);
+            .catch((err) => {
+                console.error('Error fetching product:', err);
+                setError(err instanceof Error ? err.message : 'Product not found');
                 setLoading(false);
             });
     }, [id]);

@@ -1,10 +1,6 @@
 import { API_ENDPOINTS } from '../constants/api';
 import type { CartItem } from '../types/cart';
-
-async function toApiError(response: Response, fallbackMessage: string): Promise<Error> {
-  const message = await response.text();
-  return new Error(message || fallbackMessage);
-}
+import { apiFetch, ApiError } from './httpClient';
 
 interface CartItemResponse {
   cartItemId: number;
@@ -47,70 +43,50 @@ function mapCartItem(item: CartItemResponse): CartItem {
 }
 
 export async function fetchCartItems(): Promise<CartItem[]> {
-  const response = await fetch(API_ENDPOINTS.cart);
+  try {
+    const cart = await apiFetch<CartResponse>(API_ENDPOINTS.cart);
+    return cart.items.map(mapCartItem);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return [];
+    }
 
-  if (response.status === 404) {
-    return [];
+    throw error;
   }
-
-  if (!response.ok) {
-    throw await toApiError(response, 'Failed to fetch cart data.');
-  }
-
-  const cart = (await response.json()) as CartResponse;
-  return cart.items.map(mapCartItem);
 }
 
 export async function addItemToCart(productId: number, quantity = 1): Promise<void> {
   const payload: AddToCartRequest = { productId, quantity };
-  const response = await fetch(API_ENDPOINTS.cart, {
+  await apiFetch<void>(API_ENDPOINTS.cart, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(payload),
   });
-
-  if (!response.ok) {
-    throw await toApiError(response, 'Failed to add item to cart.');
-  }
 }
 
 export async function updateCartItemQuantity(cartItemId: number, quantity: number): Promise<void> {
   const payload: UpdateCartItemRequest = { quantity };
-  const response = await fetch(`${API_ENDPOINTS.cart}/${cartItemId}`, {
+  await apiFetch<void>(`${API_ENDPOINTS.cart}/${cartItemId}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(payload),
   });
-
-  if (!response.ok) {
-    throw await toApiError(response, 'Failed to update cart item quantity.');
-  }
 }
 
 export async function removeCartItem(cartItemId: number): Promise<void> {
-  const response = await fetch(`${API_ENDPOINTS.cart}/${cartItemId}`, {
+  await apiFetch<void>(`${API_ENDPOINTS.cart}/${cartItemId}`, {
     method: 'DELETE',
   });
-
-  if (!response.ok) {
-    throw await toApiError(response, 'Failed to remove cart item.');
-  }
 }
 
 export async function clearCartItems(): Promise<void> {
-  const response = await fetch(`${API_ENDPOINTS.cart}/clear`, {
-    method: 'DELETE',
-  });
+  try {
+    await apiFetch<void>(`${API_ENDPOINTS.cart}/clear`, {
+      method: 'DELETE',
+    });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return;
+    }
 
-  if (response.status === 404) {
-    return;
-  }
-
-  if (!response.ok) {
-    throw await toApiError(response, 'Failed to clear cart.');
+    throw error;
   }
 }

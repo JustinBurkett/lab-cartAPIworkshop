@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Product } from '../types/Product';
 import { ProductCard } from '../components/ProductCard';
 import { API_ENDPOINTS } from '../constants/api';
+import { apiFetch } from '../services/httpClient';
 import './ProductList.css';
 
 const ProductListPage = () => {
@@ -10,16 +11,14 @@ const ProductListPage = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-
-        fetch(API_ENDPOINTS.products)
-            .then(res => res.json())
-            .then(data => {
+        apiFetch<Product[]>(API_ENDPOINTS.products)
+            .then((data) => {
                 setProducts(data);
                 setLoading(false);
             })
-            .catch(err => {
-                console.error("Error fetching products:", err);
-                setError(err.message);
+            .catch((err) => {
+                console.error('Error fetching products:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load products.');
                 setLoading(false);
             });
     }, []);
