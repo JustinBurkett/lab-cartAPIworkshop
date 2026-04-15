@@ -6,6 +6,7 @@ import { CheckoutForm } from './components/CheckoutForm';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import OrderConfirmationPage from './components/OrderConfirmationPage';
+import MyOrdersPage from './components/MyOrdersPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
 import AdminDashboardPage from './components/AdminDashboardPage';
@@ -33,6 +34,9 @@ function AppHeader() {
                                 {session?.user.email}
                                 {isAdmin ? ' (Admin)' : ''}
                             </span>
+                            <Link to="/orders/mine" className="authLink" aria-label="Go to my orders">
+                                My Orders
+                            </Link>
                             {isAdmin && (
                                 <Link to="/admin" className="authLink" aria-label="Go to admin dashboard">
                                     Admin
@@ -120,6 +124,14 @@ function AppLayout() {
                         <AdminRoute>
                             <AdminDashboardPage />
                         </AdminRoute>
+                    )}
+                />
+                <Route
+                    path="/orders/mine"
+                    element={(
+                        <ProtectedRoute>
+                            <MyOrdersPage />
+                        </ProtectedRoute>
                     )}
                 />
                 <Route

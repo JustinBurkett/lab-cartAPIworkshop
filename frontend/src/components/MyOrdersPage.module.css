@@ -1,0 +1,71 @@
+.page {
+  width: min(980px, 95vw);
+  margin: 0 auto;
+  padding: 0 0 60px;
+}
+
+.heading {
+  margin: 0 0 16px;
+  color: #1f2937;
+  font-size: 2rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.meta {
+  margin: 0.2rem 0;
+  color: #4b5563;
+}
+
+.confirmation {
+  margin: 0;
+  color: #bb0000;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.status {
+  margin: 0.25rem 0 0.4rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.summaryList {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 0.35rem;
+  color: #1f2937;
+}
+
+.total {
+  margin-top: 0.6rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.message {
+  color: #4b5563;
+}
+
+.error {
+  color: #b00020;
+  font-weight: 700;
+}
