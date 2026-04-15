@@ -114,7 +114,15 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    dbContext.Database.Migrate();
+
+    if (dbContext.Database.IsRelational())
+    {
+        dbContext.Database.Migrate();
+    }
+    else
+    {
+        dbContext.Database.EnsureCreated();
+    }
 
     if (!dbContext.Products.Any())
     {
@@ -234,4 +242,8 @@ static async Task SeedAdminUserAsync(UserManager<ApplicationUser> userManager, R
             throw new InvalidOperationException($"Failed to assign admin role: {errors}");
         }
     }
+}
+
+public partial class Program
+{
 }
