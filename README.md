@@ -11,11 +11,33 @@
 - Milestone 4 (Shopping Cart): In progress
 - Product catalog: Complete
 - Product detail view: Complete
-- Authentication: Not started (planned for Milestone 5)
+- Authentication: In progress (Milestone 5)
 
 ## Recently Added
 
 ### Backend
+
+- Added ASP.NET Core Identity + JWT authentication support.
+- Added auth endpoints:
+	- `POST /api/auth/register`
+	- `POST /api/auth/login`
+	- `POST /api/auth/refresh`
+- Added protected API endpoints with `[Authorize]`:
+	- Cart endpoints require authenticated `User` or `Admin`
+	- Order endpoints require authenticated `User` or `Admin`
+	- Admin endpoints (`/api/admin/*`) require `Admin` role
+- Added explicit JSON responses for auth failures:
+	- `401 Unauthorized` for missing/invalid JWT
+	- `403 Forbidden` for insufficient role access
+- Added refresh token persistence + rotation.
+- Added seeded admin user (development) for admin feature testing.
+- Added Identity password rules:
+	- Minimum 8 characters
+	- At least one digit
+	- At least one uppercase letter
+- Added email validation for auth requests.
+- Added JWT validation middleware.
+- Added migration for Identity and refresh token tables.
 
 - Added persistent cart endpoints in `CartController`:
 	- `GET /api/cart`
@@ -60,3 +82,20 @@ AI assistance has been used for code scaffolding, implementation acceleration, a
 - Accessibility requirements (button types, aria-label coverage)
 - Type safety and strict TypeScript compatibility
 - API behavior and response mapping consistency
+
+## Authentication Setup (Development)
+
+JWT key is intentionally not stored in `appsettings.json`. Configure it with user secrets:
+
+```bash
+dotnet user-secrets set "Jwt:Key" "buckeye-super-secret-jwt-key-for-dev-only-change-me-2026" --project backend/BuckeyeMarketplace.csproj
+dotnet user-secrets set "Jwt:Issuer" "BuckeyeMarketplace" --project backend/BuckeyeMarketplace.csproj
+dotnet user-secrets set "Jwt:Audience" "BuckeyeMarketplaceClient" --project backend/BuckeyeMarketplace.csproj
+```
+
+### Seeded Admin Credentials (Development)
+
+- Email: `admin@buckeyemarketplace.local`
+- Password: `Admin1234`
+
+These credentials are seeded at startup if the account does not exist.

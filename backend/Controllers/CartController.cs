@@ -1,17 +1,18 @@
 using BuckeyeMarketplace.Data;
 using BuckeyeMarketplace.Dtos;
 using BuckeyeMarketplace.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace BuckeyeMarketplace.Controllers;
 
 [ApiController]
 [Route("api/cart")]
+[Authorize(Roles = "User,Admin")]
 public class CartController : ControllerBase
 {
-    private const string CurrentUserId = "default-user";
-
     private readonly AppDbContext _dbContext;
 
     public CartController(AppDbContext dbContext)
@@ -22,10 +23,16 @@ public class CartController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<CartResponse>> GetCart()
     {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId is null)
+        {
+            return Unauthorized(new { message = "Missing user claim in token." });
+        }
+
         var cart = await _dbContext.Carts
             .Include(c => c.Items)
             .ThenInclude(i => i.Product)
-            .FirstOrDefaultAsync(c => c.UserId == CurrentUserId);
+            .FirstOrDefaultAsync(c => c.UserId == currentUserId);
 
         if (cart is null)
         {
@@ -38,6 +45,12 @@ public class CartController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<CartItemResponse>> AddToCart([FromBody] AddToCartRequest request)
     {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId is null)
+        {
+            return Unauthorized(new { message = "Missing user claim in token." });
+        }
+
         var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.Id == request.ProductId);
         if (product is null)
         {
@@ -51,13 +64,13 @@ public class CartController : ControllerBase
 
         var cart = await _dbContext.Carts
             .Include(c => c.Items)
-            .FirstOrDefaultAsync(c => c.UserId == CurrentUserId);
+            .FirstOrDefaultAsync(c => c.UserId == currentUserId);
 
         if (cart is null)
         {
             cart = new Cart
             {
-                UserId = CurrentUserId,
+                UserId = currentUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -106,6 +119,12 @@ public class CartController : ControllerBase
     [HttpPut("{cartItemId:int}")]
     public async Task<ActionResult<CartItemResponse>> UpdateCartItem([FromRoute] int cartItemId, [FromBody] UpdateCartItemRequest request)
     {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId is null)
+        {
+            return Unauthorized(new { message = "Missing user claim in token." });
+        }
+
         var cartItem = await _dbContext.CartItems
             .Include(ci => ci.Cart)
             .Include(ci => ci.Product)
@@ -116,7 +135,7 @@ public class CartController : ControllerBase
             return NotFound();
         }
 
-        if (cartItem.Cart.UserId != CurrentUserId)
+        if (cartItem.Cart.UserId != currentUserId)
         {
             return Forbid();
         }
@@ -137,6 +156,12 @@ public class CartController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteCartItem([FromRoute] int id)
     {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId is null)
+        {
+            return Unauthorized(new { message = "Missing user claim in token." });
+        }
+
         var cartItem = await _dbContext.CartItems
             .Include(ci => ci.Cart)
             .FirstOrDefaultAsync(ci => ci.Id == id);
@@ -146,7 +171,7 @@ public class CartController : ControllerBase
             return NotFound();
         }
 
-        if (cartItem.Cart.UserId != CurrentUserId)
+        if (cartItem.Cart.UserId != currentUserId)
         {
             return Forbid();
         }
@@ -162,9 +187,15 @@ public class CartController : ControllerBase
     [HttpDelete("clear")]
     public async Task<IActionResult> ClearCart()
     {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId is null)
+        {
+            return Unauthorized(new { message = "Missing user claim in token." });
+        }
+
         var cart = await _dbContext.Carts
             .Include(c => c.Items)
-            .FirstOrDefaultAsync(c => c.UserId == CurrentUserId);
+            .FirstOrDefaultAsync(c => c.UserId == currentUserId);
 
         if (cart is null)
         {
@@ -207,5 +238,10 @@ public class CartController : ControllerBase
             ImageUrl = product.ImageUrl,
             Quantity = item.Quantity
         };
+    }
+
+    private string? GetCurrentUserId()
+    {
+        return User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);
     }
 }

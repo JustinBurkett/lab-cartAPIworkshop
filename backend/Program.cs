@@ -1,8 +1,14 @@
 using BuckeyeMarketplace.Data;
 using BuckeyeMarketplace.Models;
+using BuckeyeMarketplace.Services;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using FluentValidation;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +16,78 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=buckeye.db"));
+
+builder.Services
+    .AddIdentityCore<ApplicationUser>(options =>
+    {
+        options.Password.RequiredLength = 8;
+        options.Password.RequireDigit = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireNonAlphanumeric = false;
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddSignInManager<SignInManager<ApplicationUser>>()
+    .AddDefaultTokenProviders();
+
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException("JWT signing key missing. Set it with: dotnet user-secrets set \"Jwt:Key\" \"<your-long-random-key>\"");
+}
+
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "BuckeyeMarketplace";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "BuckeyeMarketplaceClient";
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = signingKey,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromMinutes(1)
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = async context =>
+        {
+            context.HandleResponse();
+
+            if (!context.Response.HasStarted)
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsJsonAsync(new { message = "Unauthorized." });
+            }
+        },
+        OnForbidden = async context =>
+        {
+            if (!context.Response.HasStarted)
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsJsonAsync(new { message = "Forbidden." });
+            }
+        }
+    };
+});
+
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -34,6 +112,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     dbContext.Database.Migrate();
 
     if (!dbContext.Products.Any())
@@ -75,6 +155,8 @@ using (var scope = app.Services.CreateScope())
 
         dbContext.SaveChanges();
     }
+
+    await SeedAdminUserAsync(userManager, roleManager);
 }
 
 // Configure the HTTP request pipeline.
@@ -91,6 +173,7 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowReact");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
@@ -98,3 +181,57 @@ app.MapControllers();
 
 
 app.Run();
+
+static async Task SeedAdminUserAsync(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+{
+    const string adminRoleName = "Admin";
+    const string userRoleName = "User";
+    const string adminEmail = "admin@buckeyemarketplace.local";
+    const string adminPassword = "Admin1234";
+
+    if (!await roleManager.RoleExistsAsync(adminRoleName))
+    {
+        var roleResult = await roleManager.CreateAsync(new IdentityRole(adminRoleName));
+        if (!roleResult.Succeeded)
+        {
+            throw new InvalidOperationException("Failed to create Admin role.");
+        }
+    }
+
+    if (!await roleManager.RoleExistsAsync(userRoleName))
+    {
+        var userRoleResult = await roleManager.CreateAsync(new IdentityRole(userRoleName));
+        if (!userRoleResult.Succeeded)
+        {
+            throw new InvalidOperationException("Failed to create User role.");
+        }
+    }
+
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser is null)
+    {
+        adminUser = new ApplicationUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true
+        };
+
+        var createResult = await userManager.CreateAsync(adminUser, adminPassword);
+        if (!createResult.Succeeded)
+        {
+            var errors = string.Join(", ", createResult.Errors.Select(error => error.Description));
+            throw new InvalidOperationException($"Failed to seed admin user: {errors}");
+        }
+    }
+
+    if (!await userManager.IsInRoleAsync(adminUser, adminRoleName))
+    {
+        var addRoleResult = await userManager.AddToRoleAsync(adminUser, adminRoleName);
+        if (!addRoleResult.Succeeded)
+        {
+            var errors = string.Join(", ", addRoleResult.Errors.Select(error => error.Description));
+            throw new InvalidOperationException($"Failed to assign admin role: {errors}");
+        }
+    }
+}
