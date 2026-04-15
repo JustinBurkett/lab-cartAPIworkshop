@@ -27,15 +27,17 @@ public class AdminController : ControllerBase
     {
         var orders = await _dbContext.Orders
             .Include(order => order.Items)
-            .OrderByDescending(order => order.CreatedAtUtc)
+            .OrderByDescending(order => order.OrderDate)
             .ToListAsync();
 
         var responses = orders.Select(order => new OrderResponse
         {
             Id = order.Id,
             UserId = order.UserId,
-            CreatedAtUtc = order.CreatedAtUtc,
-            TotalAmount = order.TotalAmount,
+            OrderDate = order.OrderDate,
+            ConfirmationNumber = order.ConfirmationNumber,
+            ShippingAddress = order.ShippingAddress,
+            Total = order.Total,
             Status = order.Status,
             Items = order.Items.Select(item => new OrderItemResponse
             {

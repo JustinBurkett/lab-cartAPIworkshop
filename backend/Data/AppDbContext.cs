@@ -37,5 +37,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .WithOne(item => item.Order)
             .HasForeignKey(item => item.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Order>()
+            .HasIndex(order => order.ConfirmationNumber)
+            .IsUnique();
     }
 }

@@ -38,6 +38,11 @@
 - Added email validation for auth requests.
 - Added JWT validation middleware.
 - Added migration for Identity and refresh token tables.
+- Added order placement flow:
+	- `POST /api/orders` places an order from the authenticated user's cart using a shipping address payload
+	- `GET /api/orders/mine` returns current user's order history (derived from JWT claims, not URL user id)
+	- Order confirmation number is generated per order
+	- Cart is cleared after successful order placement
 
 - Added persistent cart endpoints in `CartController`:
 	- `GET /api/cart`

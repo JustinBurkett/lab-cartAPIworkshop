@@ -20,7 +20,7 @@ public class OrdersController : ControllerBase
         _dbContext = dbContext;
     }
 
-    [HttpGet]
+    [HttpGet("mine")]
     public async Task<ActionResult<IEnumerable<OrderResponse>>> GetMyOrders()
     {
         var currentUserId = GetCurrentUserId();
@@ -32,7 +32,7 @@ public class OrdersController : ControllerBase
         var orders = await _dbContext.Orders
             .Include(order => order.Items)
             .Where(order => order.UserId == currentUserId)
-            .OrderByDescending(order => order.CreatedAtUtc)
+            .OrderByDescending(order => order.OrderDate)
             .ToListAsync();
 
         return Ok(orders.Select(MapOrderResponse));
@@ -65,7 +65,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<OrderResponse>> PlaceOrder()
+    public async Task<ActionResult<OrderResponse>> PlaceOrder([FromBody] PlaceOrderRequest request)
     {
         var currentUserId = GetCurrentUserId();
         if (currentUserId is null)
@@ -94,9 +94,11 @@ public class OrdersController : ControllerBase
         var order = new Order
         {
             UserId = currentUserId,
-            CreatedAtUtc = DateTime.UtcNow,
+            OrderDate = DateTime.UtcNow,
+            ConfirmationNumber = GenerateConfirmationNumber(),
+            ShippingAddress = request.ShippingAddress.Trim(),
             Status = "Placed",
-            TotalAmount = cart.Items.Sum(item => item.Product.Price * item.Quantity),
+            Total = cart.Items.Sum(item => item.Product.Price * item.Quantity),
             Items = cart.Items
                 .Select(item => new OrderItem
                 {
@@ -133,8 +135,10 @@ public class OrdersController : ControllerBase
         {
             Id = order.Id,
             UserId = order.UserId,
-            CreatedAtUtc = order.CreatedAtUtc,
-            TotalAmount = order.TotalAmount,
+            OrderDate = order.OrderDate,
+            ConfirmationNumber = order.ConfirmationNumber,
+            ShippingAddress = order.ShippingAddress,
+            Total = order.Total,
             Status = order.Status,
             Items = order.Items.Select(item => new OrderItemResponse
             {
@@ -144,5 +148,10 @@ public class OrdersController : ControllerBase
                 Quantity = item.Quantity
             }).ToList()
         };
+    }
+
+    private static string GenerateConfirmationNumber()
+    {
+        return $"BM-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}";
     }
 }

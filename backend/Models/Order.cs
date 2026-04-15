@@ -9,9 +9,15 @@ public class Order
     [Required]
     public string UserId { get; set; } = string.Empty;
 
-    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
-    public decimal TotalAmount { get; set; }
+    [Required]
+    public string ConfirmationNumber { get; set; } = string.Empty;
+
+    [Required]
+    public string ShippingAddress { get; set; } = string.Empty;
+
+    public decimal Total { get; set; }
 
     [Required]
     public string Status { get; set; } = "Placed";

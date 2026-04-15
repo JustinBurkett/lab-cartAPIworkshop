@@ -5,15 +5,17 @@ import CartPage from './components/CartPage';
 import { CheckoutForm } from './components/CheckoutForm';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
+import OrderConfirmationPage from './components/OrderConfirmationPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider, useAuthContext } from './contexts/AuthContext';
 import { CartBadge } from './components/CartBadge';
+import type { Order } from './types/order';
 import './App.css';
 
 function CheckoutPage() {
     const navigate = useNavigate();
-    return <CheckoutForm onOrderPlaced={() => navigate('/')} />;
+    return <CheckoutForm onOrderPlaced={(order: Order) => navigate('/orders/confirmation', { state: { order } })} />;
 }
 
 function AppHeader() {
@@ -105,6 +107,14 @@ function AppLayout() {
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route
+                    path="/orders/confirmation"
+                    element={(
+                        <ProtectedRoute>
+                            <OrderConfirmationPage />
+                        </ProtectedRoute>
+                    )}
+                />
                 <Route
                     path="/cart"
                     element={(

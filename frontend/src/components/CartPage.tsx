@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCartContext } from '../contexts/CartContext';
-import { CheckoutForm } from './CheckoutForm';
 import { CartItemRow } from './CartItemRow';
 import { CartSummary } from './CartSummary';
 import styles from './CartPage.module.css';
@@ -9,29 +8,12 @@ import styles from './CartPage.module.css';
 const CartPage = () => {
   const { state, cartTotal, updateQuantity, removeFromCart } = useCartContext();
   const { items, isLoading, error } = state;
-  const [orderPlaced, setOrderPlaced] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   if (isLoading) {
     return (
       <div className={styles.page}>
         <h2 className={styles.heading}>Loading your cart...</h2>
-      </div>
-    );
-  }
-
-  if (orderPlaced) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.success} role="status" aria-live="polite">
-          <h2 className={styles.successHeading}>Order Placed!</h2>
-          <p className={styles.successText}>
-            Thank you for your order. You will receive a confirmation email shortly.
-          </p>
-          <Link to="/" className={styles.continueLink}>
-            Continue Shopping
-          </Link>
-        </div>
       </div>
     );
   }
@@ -91,8 +73,9 @@ const CartPage = () => {
       </ul>
 
       <CartSummary total={cartTotal} />
-
-      {state.items.length > 0 && <CheckoutForm onOrderPlaced={() => setOrderPlaced(true)} />}
+      <Link to="/checkout" className={styles.checkoutButton} aria-label="Proceed to checkout">
+        Proceed to Checkout
+      </Link>
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCartContext } from '../contexts/CartContext';
+import { placeOrder } from '../services/ordersApi';
+import type { Order } from '../types/order';
 import styles from './CheckoutForm.module.css';
 
 interface FormData {
@@ -59,11 +61,11 @@ function validate(data: FormData): FormErrors {
 }
 
 interface CheckoutFormProps {
-  onOrderPlaced: () => void;
+  onOrderPlaced: (order: Order) => void;
 }
 
 export function CheckoutForm({ onOrderPlaced }: CheckoutFormProps) {
-  const { cartItemCount, cartTotal, clearCart } = useCartContext();
+  const { cartItemCount, cartTotal, state, refreshCart } = useCartContext();
 
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
@@ -77,6 +79,7 @@ export function CheckoutForm({ onOrderPlaced }: CheckoutFormProps) {
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
@@ -91,7 +94,7 @@ export function CheckoutForm({ onOrderPlaced }: CheckoutFormProps) {
     setErrors(validate({ ...formData, [name]: value }));
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const allErrors = validate(formData);
@@ -101,12 +104,19 @@ export function CheckoutForm({ onOrderPlaced }: CheckoutFormProps) {
       return;
     }
 
+    setSubmitError(null);
     setIsProcessing(true);
-    setTimeout(() => {
-      void clearCart().then(() => {
-        onOrderPlaced();
-      });
-    }, 1500);
+
+    try {
+      const shippingAddress = `${formData.address.trim()}, ${formData.city.trim()}, ${formData.state} ${formData.zipCode}`;
+      const order = await placeOrder({ shippingAddress });
+      await refreshCart(false);
+      onOrderPlaced(order);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to place order.');
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   const hasError = (field: FieldName): boolean => touched.has(field) && !!errors[field];
@@ -294,6 +304,12 @@ export function CheckoutForm({ onOrderPlaced }: CheckoutFormProps) {
             {isProcessing ? 'Processing...' : 'Place Order'}
           </button>
 
+          {submitError && (
+            <p className={styles.errorMsg} role="alert">
+              {submitError}
+            </p>
+          )}
+
           {cartItemCount === 0 && (
             <p className={styles.emptyCartNote} role="status">
               Your cart is empty.{' '}
@@ -311,6 +327,12 @@ export function CheckoutForm({ onOrderPlaced }: CheckoutFormProps) {
             <span>Items</span>
             <span>{cartItemCount}</span>
           </div>
+          {state.items.map((item) => (
+            <div key={item.cartItemId} className={styles.summaryLine}>
+              <span>{item.productName} x {item.quantity}</span>
+              <span>${(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+          ))}
           <div className={`${styles.summaryLine} ${styles.summaryTotal}`}>
             <span>Total</span>
             <span>${cartTotal.toFixed(2)}</span>

@@ -22,7 +22,7 @@ interface CartContextValue {
   state: CartState;
   cartItemCount: number;
   cartTotal: number;
-  refreshCart: () => Promise<void>;
+  refreshCart: (showLoading?: boolean) => Promise<void>;
   addToCart: (product: AddProductInput) => Promise<void>;
   updateQuantity: (item: CartItem, quantity: number) => Promise<void>;
   removeFromCart: (item: CartItem) => Promise<void>;
