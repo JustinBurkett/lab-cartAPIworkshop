@@ -1,8 +1,9 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useMemo, useReducer } from 'react';
 import type { ReactNode } from 'react';
 import type { AuthSession, LoginRequest, RegisterRequest } from '../types/auth';
 import { clearStoredSession, getStoredSession, persistSession } from '../services/authStorage';
 import { loginUser, registerUser } from '../services/authApi';
+import { authReducer } from '../reducers/authReducer';
 
 interface AuthContextValue {
   session: AuthSession | null;
@@ -20,33 +21,35 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [session, setSession] = useState<AuthSession | null>(() => getStoredSession());
+  const [state, dispatch] = useReducer(authReducer, {
+    session: getStoredSession() as AuthSession | null,
+  });
 
   async function login(payload: LoginRequest) {
     const response = await loginUser(payload);
     const nextSession = persistSession(response);
-    setSession(nextSession);
+    dispatch({ type: 'SET_SESSION', payload: nextSession });
   }
 
   async function register(payload: RegisterRequest) {
     const response = await registerUser(payload);
     const nextSession = persistSession(response);
-    setSession(nextSession);
+    dispatch({ type: 'SET_SESSION', payload: nextSession });
   }
 
   function logout() {
     clearStoredSession();
-    setSession(null);
+    dispatch({ type: 'CLEAR_SESSION' });
   }
 
   const value = useMemo<AuthContextValue>(() => ({
-    session,
-    isAuthenticated: session !== null,
-    isAdmin: session?.user.roles.includes('Admin') ?? false,
+    session: state.session,
+    isAuthenticated: state.session !== null,
+    isAdmin: state.session?.user.roles.includes('Admin') ?? false,
     login,
     register,
     logout,
-  }), [session]);
+  }), [state.session]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

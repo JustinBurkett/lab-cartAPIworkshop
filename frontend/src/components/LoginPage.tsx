@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';
+import { validateLoginForm } from '../utils/authValidation';
 import styles from './AuthPage.module.css';
 
 interface LoginFormState {
@@ -37,6 +38,13 @@ export default function LoginPage() {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+
+    const validationResult = validateLoginForm(form.email, form.password);
+    if (!validationResult.isValid) {
+      setError(validationResult.errorMessage);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
