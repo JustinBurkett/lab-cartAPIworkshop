@@ -22,7 +22,9 @@ test('happy path register to order history', async ({ page }) => {
 
   await expect(page).toHaveURL('/');
 
-  await page.getByRole('button', { name: /add .* to cart/i }).first().click();
+  const addToCartButton = page.locator('button[aria-label*="to cart"]:not([disabled])').first();
+  await expect(addToCartButton).toBeVisible();
+  await addToCartButton.click();
   await page.getByLabel(/shopping cart with/i).click();
 
   await expect(page).toHaveURL('/cart');
