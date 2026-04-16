@@ -1,115 +1,63 @@
-# 🛍️ Buckeye Marketplace
-**Course:** AMIS 4630 - Spring 2026  
-**Developer:** Justin Burkett  
+# Buckeye Marketplace
 
-- Frontend: React + TypeScript + Vite
-- Backend: ASP.NET Core Web API + Entity Framework Core
+Course project for AMIS 4630 (Spring 2026).
+
+## Tech Stack
+
+- Frontend: React, TypeScript, Vite
+- Backend: ASP.NET Core Web API, Entity Framework Core
 - Database: SQLite (development)
 
-## Current Milestone Status
+## Project Status
 
-- Milestone 4 (Shopping Cart): In progress
-- Product catalog: Complete
-- Product detail view: Complete
-- Authentication: In progress (Milestone 5)
+- Product catalog and product details: complete
+- Cart, checkout, and order history: complete
+- Milestone 5 (authentication, security, admin features): complete
 
-## Recently Added
+## What We Added This Milestone (M5)
 
-### Backend
+### Authentication and Security
 
-- Added ASP.NET Core Identity + JWT authentication support.
-- Added auth endpoints:
-	- `POST /api/auth/register`
-	- `POST /api/auth/login`
-	- `POST /api/auth/refresh`
-- Added protected API endpoints with `[Authorize]`:
-	- Cart endpoints require authenticated `User` or `Admin`
-	- Order endpoints require authenticated `User` or `Admin`
-	- Admin endpoints (`/api/admin/*`) require `Admin` role
-- Added explicit JSON responses for auth failures:
-	- `401 Unauthorized` for missing/invalid JWT
-	- `403 Forbidden` for insufficient role access
-- Added refresh token persistence + rotation.
-- Added seeded admin user (development) for admin feature testing.
-- Added Identity password rules:
-	- Minimum 8 characters
-	- At least one digit
-	- At least one uppercase letter
-- Added email validation for auth requests.
-- Added JWT validation middleware.
-- Added migration for Identity and refresh token tables.
-- Added order placement flow:
-	- `POST /api/orders` places an order from the authenticated user's cart using a shipping address payload
-	- `GET /api/orders/mine` returns current user's order history (derived from JWT claims, not URL user id)
-	- Order confirmation number is generated per order
-	- Cart is cleared after successful order placement
-- Added basic admin features:
-	- Admin dashboard route in frontend (`/admin`) restricted to `Admin` role users
-	- Product management endpoints for admin UI:
-		- `GET /api/admin/products`
-		- `POST /api/admin/products`
-		- `PUT /api/admin/products/{id}`
-		- `DELETE /api/admin/products/{id}`
-	- View all orders endpoint for admins: `GET /api/admin/orders`
-	- Admin order status update endpoint: `PUT /api/orders/{orderId}/status`
+- Added registration, login, and refresh endpoints using JWT.
+- Added role-based authorization (`User` and `Admin`) on protected endpoints.
+- Added explicit `401` and `403` handling for auth/authorization failures.
+- Added refresh token persistence and rotation.
+- Added password policy enforcement through ASP.NET Identity.
+- Added security hardening headers and JWT validation middleware.
 
-- Added persistent cart endpoints in `CartController`:
-	- `GET /api/cart`
-	- `POST /api/cart`
-	- `PUT /api/cart/{cartItemId}`
-	- `DELETE /api/cart/{id}`
-	- `DELETE /api/cart/clear`
-- Added cart persistence models and DTO mapping for API responses.
-- Added validation pipeline with FluentValidation for cart requests.
-- Added product stock support (`StockQuantity`) via migration.
-- Added stock-aware business rules:
-	- Prevent adding out-of-stock products
-	- Prevent quantity updates beyond available stock
-- Added startup database migration + seed logic in `Program.cs` for development data.
+### Orders and Checkout
 
-### Frontend
+- Added authenticated order placement from cart (`POST /api/orders`).
+- Added order history endpoint for the logged-in user (`GET /api/orders/mine`).
+- Added order confirmation flow and cart clear-on-order behavior.
 
-- Added cart API service layer in `src/services/cartApi.ts`.
-- Added cart state management with `useReducer` + Context in `src/contexts/CartContext.tsx`.
-- Added optimistic cart interactions for add, update quantity, remove, and clear actions.
-- Added loading/error handling for cart fetch and mutation flows.
-- Added cart UI components for cart page, badge, item row, summary, and checkout form.
+### Admin Features
 
+- Added admin dashboard route on the frontend (`/admin`) with role restriction.
+- Added admin product management APIs (create, read, update, delete).
+- Added admin order management APIs (view all orders, update order status).
 
-## AI Usage Documentation
+## AI Usage
 
-AI assistance has been used for code scaffolding, implementation acceleration, and documentation support.
+- AI usage log: `docs/ai-usage-log.md`
 
-- Detailed log: `docs/ai-usage-log.md`
-- Project AI conventions: `AGENTS.md`
+## Basic Run Commands
 
-### What AI Was Used For
-
-- Scaffolding cart reducer/context/component structure
-- Generating API wiring between frontend cart state and backend endpoints
-- Drafting validator and DTO boilerplate for cart flows
-- Assisting with stock validation and edge-case handling
-
-### What Was Verified/Adjusted Manually
-
-- Business logic and edge-case handling (quantity rules, out-of-stock behavior)
-- Accessibility requirements (button types, aria-label coverage)
-- Type safety and strict TypeScript compatibility
-- API behavior and response mapping consistency
-
-## Authentication Setup (Development)
-
-JWT key is intentionally not stored in `appsettings.json`. Configure it with user secrets:
+From repo root:
 
 ```bash
-dotnet user-secrets set "Jwt:Key" "buckeye-super-secret-jwt-key-for-dev-only-change-me-2026" --project backend/BuckeyeMarketplace.csproj
-dotnet user-secrets set "Jwt:Issuer" "BuckeyeMarketplace" --project backend/BuckeyeMarketplace.csproj
-dotnet user-secrets set "Jwt:Audience" "BuckeyeMarketplaceClient" --project backend/BuckeyeMarketplace.csproj
+dotnet build buckeyemarketplace.sln
+dotnet test buckeyemarketplace.sln
 ```
 
-### Seeded Admin Credentials (Development)
+From `frontend/`:
 
-- Email: `admin@buckeyemarketplace.local`
-- Password: `Admin1234`
+```bash
+npm test -- --run
+```
 
-These credentials are seeded at startup if the account does not exist.
+From repo root for E2E:
+
+```bash
+npx playwright test
+```
