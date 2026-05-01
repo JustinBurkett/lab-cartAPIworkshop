@@ -10,7 +10,6 @@ namespace BuckeyeMarketplace.Controllers;
 
 [ApiController]
 [Route("api/orders")]
-[Authorize(Roles = "User,Admin")]
 public class OrdersController : ControllerBase
 {
     private readonly AppDbContext _dbContext;
@@ -21,6 +20,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("mine")]
+    [Authorize(Roles = "User,Admin")]
     public async Task<ActionResult<IEnumerable<OrderResponse>>> GetMyOrders()
     {
         var currentUserId = GetCurrentUserId();
@@ -39,6 +39,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "User,Admin")]
     public async Task<ActionResult<OrderResponse>> GetOrderById([FromRoute] int id)
     {
         var currentUserId = GetCurrentUserId();
@@ -65,6 +66,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
+    [AllowAnonymous]
     public async Task<ActionResult<OrderResponse>> PlaceOrder([FromBody] PlaceOrderRequest request)
     {
         var currentUserId = GetCurrentUserId();
