@@ -106,7 +106,7 @@ builder.Services.AddEndpointsApiExplorer();
 // Configure CORS to allow requests from Azure Static Web Apps and local development
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.WithOrigins(
-        "https://salmon-sand-05c6f240f.azurestaticapps.net",
+        "https://salmon-sand-05c6f240f.7.azurestaticapps.net",
         "http://localhost:5173")
     .AllowAnyHeader()
     .AllowAnyMethod()));
