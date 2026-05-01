@@ -104,14 +104,10 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddEndpointsApiExplorer();
 
 
-// Configure CORS to allow React frontend
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowReact",
-        policy => policy.WithOrigins("http://localhost:5173")
-                        .AllowAnyHeader()
-                        .AllowAnyMethod());
-});
+builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
+    p.WithOrigins("https://your-frontend-url.azurestaticapps.net")
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -186,7 +182,7 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseCors("AllowReact");
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
