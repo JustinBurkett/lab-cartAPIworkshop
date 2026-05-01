@@ -4,3 +4,4 @@
     "exclude": ["/assets/*", "/*.{css,js,ico,png,svg}"]
   }
 }
+

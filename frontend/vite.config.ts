@@ -4,9 +4,15 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  test: {
-    environment: 'jsdom',
-    setupFiles: './src/test/setupTests.ts',
-    globals: true,
-  },
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      output: {
+        // This forces standard .js extensions instead of .mjs
+        entryFileNames: `assets/[name].js`,
+        chunkFileNames: `assets/[name].js`,
+        assetFileNames: `assets/[name].[ext]`
+      }
+    }
+  }
 })
