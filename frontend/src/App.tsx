@@ -136,27 +136,15 @@ function AppLayout() {
                 />
                 <Route
                     path="/orders/confirmation"
-                    element={(
-                        <ProtectedRoute>
-                            <OrderConfirmationPage />
-                        </ProtectedRoute>
-                    )}
+                    element={<OrderConfirmationPage />}
                 />
                 <Route
                     path="/cart"
-                    element={(
-                        <ProtectedRoute>
-                            <CartPage />
-                        </ProtectedRoute>
-                    )}
+                    element={<CartPage />}
                 />
                 <Route
                     path="/checkout"
-                    element={(
-                        <ProtectedRoute>
-                            <CheckoutPage />
-                        </ProtectedRoute>
-                    )}
+                    element={<CheckoutPage />}
                 />
             </Routes>
         </div>

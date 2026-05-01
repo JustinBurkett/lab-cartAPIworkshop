@@ -7,7 +7,7 @@ export interface OrderItem {
 
 export interface Order {
   id: number;
-  userId: string;
+  userId: string | null;
   orderDate: string;
   confirmationNumber: string;
   shippingAddress: string;
@@ -16,6 +16,12 @@ export interface Order {
   items: OrderItem[];
 }
 
+export interface GuestCartItem {
+  productId: number;
+  quantity: number;
+}
+
 export interface PlaceOrderRequest {
   shippingAddress: string;
+  items?: GuestCartItem[];
 }

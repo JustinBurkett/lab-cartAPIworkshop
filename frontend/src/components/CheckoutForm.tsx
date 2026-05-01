@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCartContext } from '../contexts/CartContext';
+import { useAuthContext } from '../contexts/AuthContext';
 import { placeOrder } from '../services/ordersApi';
 import type { Order } from '../types/order';
 import styles from './CheckoutForm.module.css';
@@ -66,6 +67,7 @@ interface CheckoutFormProps {
 
 export function CheckoutForm({ onOrderPlaced }: CheckoutFormProps) {
   const { cartItemCount, cartTotal, state, refreshCart } = useCartContext();
+  const { isAuthenticated } = useAuthContext();
 
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
@@ -109,7 +111,18 @@ export function CheckoutForm({ onOrderPlaced }: CheckoutFormProps) {
 
     try {
       const shippingAddress = `${formData.address.trim()}, ${formData.city.trim()}, ${formData.state} ${formData.zipCode}`;
-      const order = await placeOrder({ shippingAddress });
+      const payload = {
+        shippingAddress,
+        ...(
+          !isAuthenticated && {
+            items: state.items.map(item => ({
+              productId: item.productId,
+              quantity: item.quantity,
+            })),
+          }
+        ),
+      };
+      const order = await placeOrder(payload);
       await refreshCart(false);
       onOrderPlaced(order);
     } catch (error) {
@@ -124,6 +137,14 @@ export function CheckoutForm({ onOrderPlaced }: CheckoutFormProps) {
   return (
     <div className={styles.page}>
       <h2 className={styles.heading}>Checkout</h2>
+      {!isAuthenticated && (
+        <div className={styles.loginSuggestion} role="status">
+          <p>
+            Want to view your transaction history? <Link to="/login">Log in</Link> or{' '}
+            <Link to="/register">create an account</Link>. You can also complete your purchase as a guest below.
+          </p>
+        </div>
+      )}
       <div className={styles.layout}>
         <form
           onSubmit={handleSubmit}

@@ -35,13 +35,35 @@ interface CartProviderProps {
   children: ReactNode;
 }
 
+const GUEST_CART_KEY = 'buckeye_guest_cart';
+
 export function CartProvider({ children }: CartProviderProps) {
   const [state, dispatch] = useReducer(cartReducer, initialCartState);
   const { isAuthenticated } = useAuthContext();
 
+  const loadGuestCart = useCallback(() => {
+    try {
+      const stored = localStorage.getItem(GUEST_CART_KEY);
+      if (stored) {
+        const items = JSON.parse(stored) as CartItem[];
+        dispatch({ type: 'SET_CART_ITEMS', payload: items });
+      }
+    } catch {
+      // Ignore parsing errors, just use empty cart
+    }
+  }, []);
+
+  const saveGuestCart = useCallback((items: CartItem[]) => {
+    try {
+      localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
   const refreshCart = useCallback(async (showLoading = false) => {
     if (!isAuthenticated) {
-      dispatch({ type: 'SET_CART_ITEMS', payload: [] });
+      loadGuestCart();
       dispatch({ type: 'SET_ERROR', payload: null });
       dispatch({ type: 'SET_LOADING', payload: false });
       return;
@@ -62,7 +84,7 @@ export function CartProvider({ children }: CartProviderProps) {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loadGuestCart]);
 
   useEffect(() => {
     void refreshCart(true);
@@ -92,15 +114,20 @@ export function CartProvider({ children }: CartProviderProps) {
 
     dispatch({ type: 'SET_CART_ITEMS', payload: optimisticItems });
 
-    try {
-      await addItemToCart(product.id, 1);
-      await refreshCart(false);
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Unable to add item to cart.' });
-      dispatch({ type: 'SET_CART_ITEMS', payload: state.items });
-      throw error;
+    if (isAuthenticated) {
+      try {
+        await addItemToCart(product.id, 1);
+        await refreshCart(false);
+      } catch (error) {
+        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Unable to add item to cart.' });
+        dispatch({ type: 'SET_CART_ITEMS', payload: state.items });
+        throw error;
+      }
+    } else {
+      // Save guest cart to localStorage
+      saveGuestCart(optimisticItems);
     }
-  }, [refreshCart, state.items]);
+  }, [isAuthenticated, refreshCart, saveGuestCart, state.items]);
 
   const updateQuantity = useCallback(async (item: CartItem, quantity: number) => {
     dispatch({ type: 'SET_ERROR', payload: null });
@@ -114,14 +141,19 @@ export function CartProvider({ children }: CartProviderProps) {
 
     dispatch({ type: 'SET_CART_ITEMS', payload: optimisticItems });
 
-    try {
-      await updateCartItemQuantity(item.cartItemId, quantity);
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Unable to update cart quantity.' });
-      dispatch({ type: 'SET_CART_ITEMS', payload: previousItems });
-      throw error;
+    if (isAuthenticated) {
+      try {
+        await updateCartItemQuantity(item.cartItemId, quantity);
+      } catch (error) {
+        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Unable to update cart quantity.' });
+        dispatch({ type: 'SET_CART_ITEMS', payload: previousItems });
+        throw error;
+      }
+    } else {
+      // Save guest cart to localStorage
+      saveGuestCart(optimisticItems);
     }
-  }, [state.items]);
+  }, [isAuthenticated, state.items, saveGuestCart]);
 
   const removeFromCart = useCallback(async (item: CartItem) => {
     dispatch({ type: 'SET_ERROR', payload: null });
@@ -130,14 +162,19 @@ export function CartProvider({ children }: CartProviderProps) {
     const optimisticItems = state.items.filter((currentItem) => currentItem.cartItemId !== item.cartItemId);
     dispatch({ type: 'SET_CART_ITEMS', payload: optimisticItems });
 
-    try {
-      await removeCartItem(item.cartItemId);
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Unable to remove item from cart.' });
-      dispatch({ type: 'SET_CART_ITEMS', payload: previousItems });
-      throw error;
+    if (isAuthenticated) {
+      try {
+        await removeCartItem(item.cartItemId);
+      } catch (error) {
+        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Unable to remove item from cart.' });
+        dispatch({ type: 'SET_CART_ITEMS', payload: previousItems });
+        throw error;
+      }
+    } else {
+      // Save guest cart to localStorage
+      saveGuestCart(optimisticItems);
     }
-  }, [state.items]);
+  }, [isAuthenticated, state.items, saveGuestCart]);
 
   const clearCart = useCallback(async () => {
     dispatch({ type: 'SET_ERROR', payload: null });
@@ -145,14 +182,19 @@ export function CartProvider({ children }: CartProviderProps) {
     const previousItems = state.items;
     dispatch({ type: 'SET_CART_ITEMS', payload: [] });
 
-    try {
-      await clearCartItems();
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Unable to clear cart.' });
-      dispatch({ type: 'SET_CART_ITEMS', payload: previousItems });
-      throw error;
+    if (isAuthenticated) {
+      try {
+        await clearCartItems();
+      } catch (error) {
+        dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Unable to clear cart.' });
+        dispatch({ type: 'SET_CART_ITEMS', payload: previousItems });
+        throw error;
+      }
+    } else {
+      // Clear guest cart from localStorage
+      saveGuestCart([]);
     }
-  }, [state.items]);
+  }, [isAuthenticated, state.items, saveGuestCart]);
 
   const cartItemCount = useMemo(
     () => state.items.reduce((sum, item) => sum + item.quantity, 0),

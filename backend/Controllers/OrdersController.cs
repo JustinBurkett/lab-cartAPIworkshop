@@ -68,26 +68,87 @@ public class OrdersController : ControllerBase
     public async Task<ActionResult<OrderResponse>> PlaceOrder([FromBody] PlaceOrderRequest request)
     {
         var currentUserId = GetCurrentUserId();
-        if (currentUserId is null)
-        {
-            return Unauthorized(new { message = "Missing user claim in token." });
-        }
+        List<OrderItem> orderItems = new();
+        decimal total = 0;
 
-        var cart = await _dbContext.Carts
-            .Include(c => c.Items)
-            .ThenInclude(i => i.Product)
-            .FirstOrDefaultAsync(c => c.UserId == currentUserId);
-
-        if (cart is null || cart.Items.Count == 0)
+        // Determine if this is guest or authenticated checkout
+        if (currentUserId is not null)
         {
-            return BadRequest(new { message = "Cannot place an order with an empty cart." });
-        }
+            // Authenticated user: fetch cart from database
+            var cart = await _dbContext.Carts
+                .Include(c => c.Items)
+                .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(c => c.UserId == currentUserId);
 
-        foreach (var item in cart.Items)
-        {
-            if (item.Product.StockQuantity < item.Quantity)
+            if (cart is null || cart.Items.Count == 0)
             {
-                return BadRequest(new { message = $"Insufficient stock for product {item.Product.Title}." });
+                return BadRequest(new { message = "Cannot place an order with an empty cart." });
+            }
+
+            foreach (var item in cart.Items)
+            {
+                if (item.Product.StockQuantity < item.Quantity)
+                {
+                    return BadRequest(new { message = $"Insufficient stock for product {item.Product.Title}." });
+                }
+            }
+
+            orderItems = cart.Items
+                .Select(item => new OrderItem
+                {
+                    ProductId = item.ProductId,
+                    ProductTitle = item.Product.Title,
+                    UnitPrice = item.Product.Price,
+                    Quantity = item.Quantity
+                })
+                .ToList();
+
+            total = cart.Items.Sum(item => item.Product.Price * item.Quantity);
+
+            // Deduct stock and clear cart
+            foreach (var cartItem in cart.Items)
+            {
+                cartItem.Product.StockQuantity -= cartItem.Quantity;
+            }
+            _dbContext.CartItems.RemoveRange(cart.Items);
+            cart.UpdatedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            // Guest user: validate items in request
+            if (request.Items is null || request.Items.Count == 0)
+            {
+                return BadRequest(new { message = "Cannot place an order with an empty cart." });
+            }
+
+            var productIds = request.Items.Select(x => x.ProductId).ToList();
+            var products = await _dbContext.Products
+                .Where(p => productIds.Contains(p.Id))
+                .ToListAsync();
+
+            if (products.Count != request.Items.Count)
+            {
+                return BadRequest(new { message = "One or more products not found." });
+            }
+
+            foreach (var item in request.Items)
+            {
+                var product = products.FirstOrDefault(p => p.Id == item.ProductId);
+                if (product is null || product.StockQuantity < item.Quantity)
+                {
+                    return BadRequest(new { message = $"Insufficient stock for one or more products." });
+                }
+
+                orderItems.Add(new OrderItem
+                {
+                    ProductId = product.Id,
+                    ProductTitle = product.Title,
+                    UnitPrice = product.Price,
+                    Quantity = item.Quantity
+                });
+
+                total += product.Price * item.Quantity;
+                product.StockQuantity -= item.Quantity;
             }
         }
 
@@ -98,27 +159,11 @@ public class OrdersController : ControllerBase
             ConfirmationNumber = GenerateConfirmationNumber(),
             ShippingAddress = request.ShippingAddress.Trim(),
             Status = "Placed",
-            Total = cart.Items.Sum(item => item.Product.Price * item.Quantity),
-            Items = cart.Items
-                .Select(item => new OrderItem
-                {
-                    ProductId = item.ProductId,
-                    ProductTitle = item.Product.Title,
-                    UnitPrice = item.Product.Price,
-                    Quantity = item.Quantity
-                })
-                .ToList()
+            Total = total,
+            Items = orderItems
         };
 
-        foreach (var cartItem in cart.Items)
-        {
-            cartItem.Product.StockQuantity -= cartItem.Quantity;
-        }
-
         _dbContext.Orders.Add(order);
-        _dbContext.CartItems.RemoveRange(cart.Items);
-        cart.UpdatedAt = DateTime.UtcNow;
-
         await _dbContext.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, MapOrderResponse(order));

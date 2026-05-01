@@ -104,13 +104,23 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddEndpointsApiExplorer();
 
 // Configure CORS to allow requests from Azure Static Web Apps and local development
-builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
-    p.WithOrigins(
-        "https://salmon-sand-05c6f240f.7.azurestaticapps.net",
-        "http://localhost:5173")
-    .AllowAnyHeader()
-    .AllowAnyMethod()));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+            "https://salmon-sand-05c6f240f.7.azurestaticapps.net",
+            "http://localhost:5173"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .SetIsOriginAllowed(_ => true);
+    });
+});
+
 var app = builder.Build();
+
+app.UseCors("AllowFrontend");
 
 using (var scope = app.Services.CreateScope())
 {
@@ -171,9 +181,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 
-app.UseSwaggerUI();
 
-app.UseCors();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
