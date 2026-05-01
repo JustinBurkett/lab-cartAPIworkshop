@@ -173,6 +173,8 @@ using (var scope = app.Services.CreateScope())
 
 app.UseSwaggerUI();
 
+app.UseCors();
+
 app.UseHttpsRedirection();
 
 app.Use(async (context, next) =>
@@ -184,7 +186,6 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
