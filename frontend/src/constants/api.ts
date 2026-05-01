@@ -1,4 +1,4 @@
-const baseUrl = (import.meta.env.VITE_API_URL ?? 'http://localhost:5000').replace(/\/+$/, '');
+const baseUrl = (import.meta.env.VITE_API_URL).replace(/\/+$/, '');
 
 export const API_ENDPOINTS = {
     products: `${baseUrl}/api/products`,

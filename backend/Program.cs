@@ -103,9 +103,11 @@ builder.Services.AddFluentValidationAutoValidation();
 // Add Swagger portal services
 builder.Services.AddEndpointsApiExplorer();
 
-
+// Configure CORS to allow requests from Azure Static Web Apps and local development
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
-    p.WithOrigins("https://your-frontend-url.azurestaticapps.net")
+    p.WithOrigins(
+        "https://salmon-sand-05c6f240f.azurestaticapps.net",
+        "http://localhost:5173")
     .AllowAnyHeader()
     .AllowAnyMethod()));
 var app = builder.Build();
