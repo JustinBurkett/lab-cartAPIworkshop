@@ -172,19 +172,8 @@ using (var scope = app.Services.CreateScope())
     await SeedAdminUserAsync(userManager, roleManager);
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", "v1");
-    });
-}
-else
-{
-    app.UseHsts();
-}
+
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
